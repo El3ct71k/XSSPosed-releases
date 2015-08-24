@@ -2,6 +2,7 @@ __author__ = 'El3ct71k'
 
 import logging
 import urllib2
+import exceptions
 from time import sleep
 from sys import stdout
 import lxml.html as html_parser
@@ -59,8 +60,13 @@ def get_details(res):
 	get_description = list(html_page.xpath('//td[@class="url"]'))[0].text
 	status = str(list(html_page.xpath('//td[@class="col2"]'))[0].text)
 	get_status = "Fixed%s" % status[3:] if status.startswith("Yes") else status
-	return {'description':get_description, 'status':get_status}
-
+	post_data = False
+	try:
+		if str(html_page.xpath('//p[@class="urltxt"]')[2].text).startswith("HTTP POST"):
+			post_data = html_page.xpath('//textarea[@name="post"]')[0].text
+	except exceptions.IndexError:
+		pass
+	return {'description':get_description, 'status':get_status, 'post_data': post_data}
 
 def get_feed(max_feed=5):
 	"""
@@ -81,7 +87,7 @@ def get_feed(max_feed=5):
 			site_response = urllib2.urlopen(link).read()
 			details = get_details(site_response)
 			yield {'title': list(item.iter('title'))[0].text, 'description': details['description'], 'link': link,
-			       'status': str(details['status']),'exploit': get_exploit(site_response)}
+			       'status': str(details['status']),'exploit': get_exploit(site_response), 'post_data': details['post_data']}
 
 
 def main(outfile):
@@ -91,17 +97,19 @@ def main(outfile):
 	configure_logger(outfile)
 	while True:
 		for items in get_feed(MAX_FEED):
-			status, exploit, link, description, title = items.values()
+			status, description, title, exploit, post_data, link = items.values()
 
 			# Treatment in unicode
 			status = status.encode('ascii', 'ignore') if isinstance(status, unicode) else status
 			description = description.encode('ascii', 'ignore') if isinstance(description, unicode) else description
-			LOGGER.info("Title: {title}\nWebsite Description: {description}\nLink: {link}\nPacth status: {status}\nExploit: {exploit}\n".format(
+			post_data = "Post data: %s" % post_data if post_data else ''
+			LOGGER.info("Title: {title}\nWebsite Description: {description}\nLink: {link}\nPacth status: {status}\nExploit: {exploit}\n{post_data}".format(
 						title=title,
                         description=description,
 						link=link,
                         status=status,
-						exploit=exploit
+						exploit=exploit,
+			            post_data=post_data
 						))
 		sleep(30)
 
