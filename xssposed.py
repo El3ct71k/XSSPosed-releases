@@ -9,7 +9,7 @@ import xml.etree.ElementTree as xml_parser
 from argparse import ArgumentParser
 
 # Global Variable
-MAX_FEED = 5
+MAX_FEED = 5 # number of latest submissions
 CONTAINER = set()
 LOGGER = logging.getLogger('XSSPosed-releases')
 
