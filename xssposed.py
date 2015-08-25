@@ -57,7 +57,10 @@ def get_details(res):
 		This function is responsible to extrace the exploit PoC from XSSPosed site.
 	"""
 	html_page = html_parser.fromstring(res)
-	get_description = list(html_page.xpath('//td[@class="url"]'))[0].text
+	try:
+		get_description = list(html_page.xpath('//td[@class="url"]'))[0].text
+	except exceptions.IndexError:
+		get_description = None
 	status = str(list(html_page.xpath('//td[@class="col2"]'))[0].text)
 	get_status = "Fixed%s" % status[3:] if status.startswith("Yes") else status
 	post_data = False
