@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 __author__ = 'El3ct71k'
 
 import logging
